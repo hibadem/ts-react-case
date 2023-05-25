@@ -6,7 +6,6 @@ import User from './types/User';
 const App: React.FC = () => {
   
   const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchQuery, setQuery] = useState('');
 
   useEffect(() => {
@@ -15,7 +14,6 @@ const App: React.FC = () => {
         const response = await fetch('https://jsonplaceholder.typicode.com/users');
         const data = await response.json();
         setUsers(data);
-        setFilteredUsers(data);
         ;
       } catch (error) {
         console.error('fetching users error:', error);
@@ -25,21 +23,13 @@ const App: React.FC = () => {
     fetchUsers();
   }, []);
 
-  const handleButtonClick = useCallback(() => {
-    const filteredUsers = users.filter(user => 
-      user.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredUsers(filteredUsers);
-  }, [searchQuery, users]);
-
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     setQuery(value);
     if (value === '') {
       setQuery('');
-      setFilteredUsers(users);
     }
-  }, [users]); 
+  }, []); 
 
   // const handleUserUpdate = (updatedUser: User) => {
   //   setUsers((prevUsers) => {
@@ -75,18 +65,34 @@ const App: React.FC = () => {
     
   }, [users]);
 
+  const handleSelectChange = (value: string) => {
+    const sortedUsers: User[] = [...users].sort((a,b): number => 
+       value === 'asc' ?  a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
+    );
+
+    setUsers(sortedUsers);
+
+  }
+
   return (
     <div className="App">
     <h1>user list</h1>
+
+    <select onChange={(e) => handleSelectChange(e.target.value)}>
+        <option value="">--Please choose an option--</option>
+        <option value="asc">asc</option>
+        <option value="desc">desc</option>
+    </select>
+
     <input type="search" id="site-search" name="search" value={searchQuery} onChange={handleInputChange}/>
 
-    <button onClick={handleButtonClick}>Search</button>
     <ul>
-     {filteredUsers.map((user) => (
-      <ListItem user={user}
+    {users.filter(user => user.name.toLowerCase().includes(searchQuery.toLowerCase())).map((user) => (
+      <ListItem key={user.id} user={user}
        handleUpdateButtonClick={handleUpdateButtonClick}
        handleDeleteButtonClick={handleDeleteButtonClick}/>
-     ))}
+     ))
+    }
      </ul>
 
     <h2>users state</h2>

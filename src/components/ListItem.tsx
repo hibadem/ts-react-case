@@ -1,4 +1,4 @@
-import { SetStateAction, Dispatch, useState} from "react";
+import { useState} from "react";
 import User from "../types/User";
 
 type IProps = {
